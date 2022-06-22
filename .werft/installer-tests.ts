@@ -196,6 +196,22 @@ const TEST_CONFIGURATIONS: { [name: string]: TestConfig } = {
             "DESTROY",
         ],
     },
+    STANDARD_EKS_PREVIEW: {
+        DESCRIPTION: "Create an EKS cluster (and skip destruction)",
+        PHASES: [
+            "STANDARD_EKS_CLUSTER",
+            "CERT_MANAGER",
+            // TODO phases are:
+            // 1) register domains in AWS, associate with route53
+            // 2) add the associated ns record to gcp(since we use gitpod-self-hsoted.com domain)
+            // 3) create cluster issuer with route53 as solver
+            "GENERATE_KOTS_CONFIG",
+            "INSTALL_GITPOD",
+            // "CHECK_INSTALLATION",
+            // "RUN_INTEGRATION_TESTS",
+            "RESULTS",
+        ],
+    },
     STANDARD_K3S_PREVIEW: {
         DESCRIPTION: "Create a SH Gitpod preview environment on a K3s cluster, created on a GCP instance",
         PHASES: [

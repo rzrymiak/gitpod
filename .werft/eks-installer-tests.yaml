@@ -1,4 +1,9 @@
 # debug using `werft run github -f -s .werft/installer-tests.ts -j .werft/eks-installer-tests.yaml -a debug=true`
+args:
+- name: destroy
+  desc: "Should the setup be destroyed or not"
+  required: false
+  default: true
 pod:
   serviceAccount: werft
   affinity:
@@ -74,12 +79,20 @@ pod:
         sudo chown -R gitpod:gitpod /workspace
         sudo apt update && apt install gettext-base
 
+        export DESTROY="{{ .Annotations.destroy }}"
+
+        if [[ $DESTROY == "false" ]]; then
+          export STAGE=STANDARD_EKS_PREVIEW
+        else
+          export STAGE=STANDARD_EKS_TEST
+        fi
+
         export TF_VAR_TEST_ID="eks-$(date +%s)-$(echo $RANDOM | md5sum | head -c 5; echo)"
 
         (cd .werft && yarn install && mv node_modules ..) | werft log slice prep
         printf '{{ toJson . }}' > context.json
 
-        npx ts-node .werft/installer-tests.ts "STANDARD_EKS_TEST"
+        npx ts-node .werft/installer-tests.ts "$STAGE"
 # The bit below makes this a cron job
 # plugins:
 #   cron: "15 3 * * *"
