@@ -353,9 +353,6 @@ func Run(options ...RunOption) {
 				<-cstate.ContentReady()
 
 				start := time.Now()
-				defer func() {
-					log.Debugf("unshallow of local repository took %v", time.Since(start))
-				}()
 
 				cmd := runAsGitpodUser(exec.Command("git", "fetch", "--unshallow", "--tags"))
 				cmd.Env = childProcEnvvars
@@ -365,7 +362,10 @@ func Run(options ...RunOption) {
 				err := cmd.Run()
 				if err != nil {
 					log.WithError(err).Error("git fetch error")
+					continue
 				}
+
+				log.Debugf("unshallow of local repository took %v", time.Since(start))
 			}
 		}()
 	}
