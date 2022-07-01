@@ -258,9 +258,21 @@ destroy-gcp: select-workspace
 #
 # The sleep following deletion adds a bit of padding so that external resources (such
 # as AWS ELBs generated from LoadBalancer type services) can terminate.
+#
+# TODO(alt):
+#	Deleting the cert-manager and external-dns namespaces _seems_ to
+#	speed up the EKS nodegroup teardown process, but it's hacky to lump
+#	this in with unrelated namespace deletions. This may potentially
+#	interfere if we're repeatedly installing gitpod into the same cluster
+#	during integration testing so let's keep this in mind as a potential
+#	risk.
 destroy-gitpod:
 	[[ -f ${KUBECONFIG} ]] \
-		&& kubectl --kubeconfig=${KUBECONFIG} delete namespace/gitpod --now --timeout 60s \
+		&& ( \
+			kubectl --kubeconfig=${KUBECONFIG} delete namespace/gitpod --now --timeout 120s; \
+			kubectl --kubeconfig=${KUBECONFIG} delete namespace/cert-manager --now --timeout 120s; \
+			kubectl --kubeconfig=${KUBECONFIG} delete namespace/external-dns --now --timeout 120s; \
+		) \
 		|| true
 
 destroy-aws: select-workspace
