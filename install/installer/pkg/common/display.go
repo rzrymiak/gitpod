@@ -155,7 +155,21 @@ func YamlToRuntimeObject(objects []string) ([]RuntimeObject, error) {
 				continue
 			}
 
-			v.Content = ctnt
+			var obj map[string]interface{}
+			err = yaml.Unmarshal([]byte(p), &obj)
+			if err != nil {
+				return nil, err
+			}
+
+			delete(obj, "status")
+
+			b, err := yaml.Marshal(obj)
+			if err != nil {
+				return nil, err
+			}
+
+			v.Content = string(b)
+
 			sortedObjects = append(sortedObjects, v)
 		}
 	}
