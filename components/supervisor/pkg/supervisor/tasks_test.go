@@ -231,7 +231,9 @@ func TestTaskManager(t *testing.T) {
 			var wg sync.WaitGroup
 			wg.Add(1)
 			tasksSuccessChan := make(chan taskSuccess, 1)
-			go taskManager.Run(context.Background(), &wg, tasksSuccessChan)
+			portReadyChan := make(chan struct{}, 1)
+			portReadyChan <- struct{}{}
+			go taskManager.Run(context.Background(), &wg, tasksSuccessChan, portReadyChan)
 			wg.Wait()
 			if diff := cmp.Diff(test.ExpectedReporter, reporter); diff != "" {
 				t.Errorf("unexpected output (-want +got):\n%s", diff)

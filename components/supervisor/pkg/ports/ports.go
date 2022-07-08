@@ -133,7 +133,7 @@ func (s *Subscription) Updates() <-chan []*api.PortsStatus {
 }
 
 // Run starts the port manager which keeps running until one of its observers stops.
-func (pm *Manager) Run(ctx context.Context, wg *sync.WaitGroup) {
+func (pm *Manager) Run(ctx context.Context, wg *sync.WaitGroup, readyChan chan struct{}) {
 	defer wg.Done()
 	defer log.Debug("portManager shutdown")
 
@@ -160,6 +160,7 @@ func (pm *Manager) Run(ctx context.Context, wg *sync.WaitGroup) {
 	servedUpdates, servedErrors := pm.S.Observe(ctx)
 	configUpdates, configErrors := pm.C.Observe(ctx)
 	tunneledUpdates, tunneledErrors := pm.T.Observe(ctx)
+	readyChan <- struct{}{}
 	for {
 		var (
 			exposed     []ExposedPort

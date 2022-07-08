@@ -528,7 +528,7 @@ func TestPortsUpdateState(t *testing.T) {
 			defer cancel()
 			var wg sync.WaitGroup
 			wg.Add(3)
-			go pm.Run(ctx, &wg)
+			go pm.Run(ctx, &wg, make(chan struct{}))
 			sub, err := pm.Subscribe()
 			if err != nil {
 				t.Fatal(err)
@@ -693,7 +693,7 @@ func TestPortsConcurrentSubscribe(t *testing.T) {
 	defer cancel()
 	var wg sync.WaitGroup
 	wg.Add(2)
-	go pm.Run(ctx, &wg)
+	go pm.Run(ctx, &wg, make(chan struct{}))
 	go func() {
 		defer wg.Done()
 		defer close(config.Error)

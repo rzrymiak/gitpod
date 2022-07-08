@@ -225,11 +225,13 @@ func (tm *tasksManager) init(ctx context.Context) {
 	}
 }
 
-func (tm *tasksManager) Run(ctx context.Context, wg *sync.WaitGroup, successChan chan taskSuccess) {
+func (tm *tasksManager) Run(ctx context.Context, wg *sync.WaitGroup, successChan chan taskSuccess, portMgmtReadyChan chan struct{}) {
 	defer wg.Done()
 	defer log.Debug("tasksManager shutdown")
 
 	tm.init(ctx)
+
+	<-portMgmtReadyChan
 
 	for _, t := range tm.tasks {
 		if t.State == api.TaskState_closed {

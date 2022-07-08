@@ -324,16 +324,18 @@ func Run(options ...RunOption) {
 	go startSSHServer(ctx, cfg, &wg, childProcEnvvars)
 	wg.Add(1)
 	tasksSuccessChan := make(chan taskSuccess, 1)
-	go taskManager.Run(ctx, &wg, tasksSuccessChan)
+	portMgmtReadyChan := make(chan struct{}, 1)
+	go taskManager.Run(ctx, &wg, tasksSuccessChan, portMgmtReadyChan)
 	wg.Add(1)
 	go socketActivationForDocker(ctx, &wg, termMux)
 
 	if cfg.isHeadless() {
 		wg.Add(1)
 		go stopWhenTasksAreDone(ctx, &wg, shutdown, tasksSuccessChan)
+		portMgmtReadyChan <- struct{}{}
 	} else if !opts.RunGP {
 		wg.Add(1)
-		go portMgmt.Run(ctx, &wg)
+		go portMgmt.Run(ctx, &wg, portMgmtReadyChan)
 	}
 
 	if cfg.PreventMetadataAccess {
