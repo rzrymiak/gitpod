@@ -63,6 +63,10 @@ type WorkspaceConfig struct {
 		WriteIOPS        int64             `json:"writeIOPS"`
 		ReadIOPS         int64             `json:"readIOPS"`
 	} `json:"ioLimits"`
+	NetworkLimits struct {
+		Enabled              bool  `json:"enabled"`
+		ConnectionsPerMinute int64 `json:"connectionsPerMinute"`
+	} `json:"networkLimits"`
 
 	RegistryFacade struct {
 		IPFSCache struct {

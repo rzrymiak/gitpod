@@ -45,6 +45,11 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 		ControlPeriod:  util.Duration(15 * time.Second),
 	}
 	var ioLimitConfig daemon.IOLimitConfig
+	networkLimitConfig := content.NetworkLimitConfig{
+		Enabled:              false,
+		ConnectionsPerMinute: 3000,
+	}
+
 	runtimeMapping := make(map[string]string)
 	// default runtime mapping
 	runtimeMapping[ctx.Config.Workspace.Runtime.ContainerDRuntimeDir] = "/mnt/node0"
@@ -62,6 +67,9 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 		ioLimitConfig.ReadBWPerSecond = ucfg.Workspace.IOLimits.ReadBWPerSecond
 		ioLimitConfig.WriteIOPS = ucfg.Workspace.IOLimits.WriteIOPS
 		ioLimitConfig.ReadIOPS = ucfg.Workspace.IOLimits.ReadIOPS
+
+		networkLimitConfig.Enabled = ucfg.Workspace.NetworkLimits.Enabled
+		networkLimitConfig.ConnectionsPerMinute = ucfg.Workspace.NetworkLimits.ConnectionsPerMinute
 
 		if len(ucfg.Workspace.WSDaemon.Runtime.NodeToContainerMapping) > 0 {
 			// reset map
@@ -104,6 +112,7 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 				Initializer: content.InitializerConfig{
 					Command: "/app/content-initializer",
 				},
+				NetworkLimits: networkLimitConfig,
 			},
 			Uidmapper: iws.UidmapperConfig{
 				ProcLocation: "/proc",
