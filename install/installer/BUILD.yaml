@@ -5,6 +5,7 @@ packages:
       - go.mod
       - go.sum
       - "**/*.go"
+      - "**/*.golden"
       - "cmd/versions.yaml"
       - "pkg/components/**/*.tpl"
       - "pkg/components/**/*.crt"
