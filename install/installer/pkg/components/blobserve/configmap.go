@@ -70,6 +70,10 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 						Search:      "open-vsx.org",
 						Replacement: openVSXProxyUrl,
 						Path:        "/ide/out/vs/workbench/workbench.web.main.js",
+					}, {
+						Search:      "https://raw.githubusercontent.com/gitpod-io/openvsx.org.json/main/marketplace.json",
+						Replacement: fmt.Sprintf("ide.%s/code/marketplace.json", ctx.Config.Domain),
+						Path:        "/ide/out/vs/workbench/workbench.web.main.js",
 					}},
 					InlineStatic: []blobserve.InlineReplacement{{
 						Search:      "${window.location.origin}",

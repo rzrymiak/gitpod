@@ -18,9 +18,11 @@ RUN for FILE in `ls /bin/gitpod-local-companion*`;do \
   gzip -v -f -9 -k "$FILE"; \
 done
 
+RUN mkdir -p static/code
+RUN wget https://raw.githubusercontent.com/gitpod-io/openvsx.org.json/main/marketplace.json -O static/code/marketplace.json
 
 FROM caddy/caddy:2.4.6-alpine
 
 COPY conf/Caddyfile /etc/caddy/Caddyfile
-COPY static /www/
+COPY --from=compress static /www/
 COPY --from=compress /bin /www/static/bin
