@@ -91,6 +91,13 @@ const TEST_CONFIGURATIONS: { [name: string]: TestConfig } = {
             "CHECK_INSTALLATION",
         ],
     },
+    CLEANUP_OLD_TESTS: {
+        CLOUD: "",
+        DESCRIPTION: "Deletes old test setups",
+        PHASES: [
+            "CLEANUP_OLD_TESTS"
+        ]
+    }
 };
 
 const config: TestConfig = TEST_CONFIGURATIONS[testConfig];
@@ -176,6 +183,11 @@ const INFRA_PHASES: { [name: string]: InfraConfig } = {
         phase: "destroy",
         makeTarget: "cleanup",
         description: "Destroy the created infrastucture",
+    },
+    CLEANUP_OLD_TESTS: {
+        phase: "cleanup-old-tests",
+        makeTarget: "cleanup-old-tests",
+        description: "",
     },
     RESULTS: {
         phase: "get-results",

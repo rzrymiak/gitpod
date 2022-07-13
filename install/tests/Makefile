@@ -303,4 +303,10 @@ get-results:
 
 list-state:
 	terraform state list
+
+cleanup-old-tests:
+	gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} --project=sh-automated-tests
+	gsutil ls gs://nightly-tests/tf-state
+	terraform init
+	terraform workspace list
 # end
