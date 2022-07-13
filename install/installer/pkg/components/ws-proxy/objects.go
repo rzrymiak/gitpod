@@ -5,10 +5,11 @@
 package wsproxy
 
 import (
-	"github.com/gitpod-io/gitpod/installer/pkg/common"
-	"github.com/gitpod-io/gitpod/installer/pkg/config/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+
+	"github.com/gitpod-io/gitpod/installer/pkg/common"
+	config "github.com/gitpod-io/gitpod/installer/pkg/config/v1"
 )
 
 var Objects = common.CompositeRenderFunc(
