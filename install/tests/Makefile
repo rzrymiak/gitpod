@@ -26,19 +26,27 @@ help: Makefile
 	@sed -n 's/^##//p' $< | column -t -s ':' |  sed -e 's/^/ /'
 	@echo
 
+upload-kubeconfig-to-gcp:
+	gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} --project=sh-automated-tests
+	gsutil cp ${KUBECONFIG} gs://nightly-tests/tf-state/${TF_VAR_TEST_ID}-kubeconfig
+
 .PHONY:
 ## gke-standard-cluster: Creates a zonal GKE cluster
 gke-standard-cluster:
 	terraform init --upgrade && \
 	terraform workspace new $(TF_VAR_TEST_ID) || terraform workspace select $(TF_VAR_TEST_ID) && \
-	terraform apply -target=module.gke -var kubeconfig=${KUBECONFIG} --auto-approve
+	terraform apply -target=module.gke -var kubeconfig=${KUBECONFIG} --auto-approve && \
+	$(MAKE) upload-kubeconfig-to-gcp
+	@echo "Done creating GKE cluster"
+
 
 .PHONY:
 ## eks-standard-cluster: Creates an EKS cluster
 eks-standard-cluster:
 	terraform init --upgrade && \
 	terraform workspace new $(TF_VAR_TEST_ID) || terraform workspace select $(TF_VAR_TEST_ID) && \
-	terraform apply -target=module.eks -var kubeconfig=${KUBECONFIG} --auto-approve
+	terraform apply -target=module.eks -var kubeconfig=${KUBECONFIG} --auto-approve && \
+	$(MAKE) upload-kubeconfig-to-gcp
 	@echo "Done creating EKS cluster"
 
 .PHONY:
@@ -46,7 +54,8 @@ eks-standard-cluster:
 aks-standard-cluster:
 	terraform init --upgrade && \
 	terraform workspace new $(TF_VAR_TEST_ID) || terraform workspace select $(TF_VAR_TEST_ID) && \
-	terraform apply -target=module.aks -var kubeconfig=${KUBECONFIG} --auto-approve
+	terraform apply -target=module.aks -var kubeconfig=${KUBECONFIG} --auto-approve && \
+	$(MAKE) upload-kubeconfig-to-gcp
 	@echo "Done creating AKS cluster"
 
 .PHONY:
@@ -70,7 +79,8 @@ cluster-issuer: check-env-cloud
 k3s-standard-cluster:
 	terraform init --upgrade && \
 	terraform workspace new $(TF_VAR_TEST_ID) || terraform workspace select $(TF_VAR_TEST_ID) && \
-	terraform apply -target=module.k3s -var kubeconfig=${KUBECONFIG} --auto-approve
+	terraform apply -target=module.k3s -var kubeconfig=${KUBECONFIG} --auto-approve && \
+	$(MAKE) upload-kubeconfig-to-gcp
 	@echo "Done creating k3s cluster"
 
 .PHONY:
@@ -256,7 +266,15 @@ kots-upgrade:
 	@echo "Upgrade gitpod KOTS app to latest"
 	kubectl kots upstream upgrade --kubeconfig=${KUBECONFIG} gitpod -n gitpod --deploy
 
-cleanup: check-env-cloud destroy-gitpod destroy-$(cloud) destroy-workspace
+cleanup: check-env-cloud sync-kubeconfig destroy-gitpod destroy-$(cloud) destroy-workspace destroy-kubeconfig
+
+sync-kubeconfig:
+	gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} --project=sh-automated-tests
+	[[ -f ${KUBECONFIG} ]] || gsutil cp gs://nightly-tests/tf-state/${TF_VAR_TEST_ID}-kubeconfig ${KUBECONFIG} || echo "No kubeconfig"
+
+destroy-kubeconfig:
+	gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} --project=sh-automated-tests
+	gsutil rm gs://nightly-tests/tf-state/${TF_VAR_TEST_ID}-kubeconfig || echo "No kubeconfig"
 
 select-workspace:
 	terraform workspace select $(TF_VAR_TEST_ID)
@@ -295,18 +313,17 @@ destroy-azure: select-workspace
 	ls ${KUBECONFIG} && terraform destroy -target=module.certmanager -var kubeconfig=${KUBECONFIG} --auto-approve || echo "No kubeconfig file"
 	terraform destroy -target=module.aks -var kubeconfig=${KUBECONFIG} --auto-approve
 
-get-results:
-	@echo "If you have gotten this far, it means your setup succeeded"
-	@echo "The IP address of you setup is "https://$(TF_VAR_TEST_ID).tests.gitpod-self-hosted.com""
-	@echo "Following is the KUBECONFIG you can use to connect to the cluster:"
-	@cat ${KUBECONFIG}
-
 list-state:
 	terraform state list
 
 cleanup-old-tests:
-	gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} --project=sh-automated-tests
-	gsutil ls gs://nightly-tests/tf-state
 	terraform init
-	terraform workspace list
+	for f in $$(terraform workspace list); do echo "$f"; done;
+
+	gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} --project=sh-automated-tests
+
+
+
+	# gsutil ls gs://nightly-tests/tf-state
+
 # end

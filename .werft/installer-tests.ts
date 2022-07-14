@@ -189,11 +189,6 @@ const INFRA_PHASES: { [name: string]: InfraConfig } = {
         makeTarget: "cleanup-old-tests",
         description: "",
     },
-    RESULTS: {
-        phase: "get-results",
-        makeTarget: "get-results",
-        description: "Get the result of the setup",
-    },
 };
 
 
@@ -258,8 +253,11 @@ installerTests(TEST_CONFIGURATIONS[testConfig]).catch((err) => {
 
 export async function installerTests(config: TestConfig) {
     console.log(config.DESCRIPTION);
-    // these phases set up the infrastructure
-    werft.phase(`create-${cloud}-infra`, `Create the infrastructure in ${cloud}`);
+    // these phases sets up or clean up the infrastructure
+    // If the cloud variable is not set, we have a cleanup job in hand
+    const majorPhase: string = cloud == "" ? `create-${cloud}-infra` : "cleanup-infra"
+
+    werft.phase(majorPhase, `Manage the infrastructure`);
     for (let phase of config.PHASES) {
         const phaseSteps = INFRA_PHASES[phase];
         const ret = callMakeTargets(phaseSteps.phase, phaseSteps.description, phaseSteps.makeTarget);
@@ -269,9 +267,14 @@ export async function installerTests(config: TestConfig) {
             break;
         }
     }
-    werft.done(`create-${cloud}-infra`);
+    werft.done(majorPhase);
 
-if (upgrade === "true") {
+    if (cloud == "") {
+        // this means that it was a cleanup job, nothing more to do here
+        return
+    }
+
+    if (upgrade === "true") {
         // we could run integration tests in the current setup
         // but since we run nightly tests on unstable setups, feels unnecessary
         // runIntegrationTests()
@@ -291,15 +294,14 @@ if (upgrade === "true") {
 
     // if the preview flag is set to true, the script will print the result and exits
     if (preview === "true") {
-        const resultPhase = INFRA_PHASES["RESULTS"];
         werft.phase("print-output", "Get connection details to self-hosted setup");
-
-        // TODO(nvn): send the kubeconfig to cloud storage
-        callMakeTargets(resultPhase.phase, resultPhase.description, resultPhase.makeTarget);
 
         exec(
             `werft log result -d  "self-hosted preview url" url "https://${process.env["TF_VAR_TEST_ID"]}.tests.gitpod-self-hosted.com"`,
         );
+
+        exec(`werft log result -d  "KUBECONFIG file destination" url "You can find
+             your KUBECONFIG file at 'gs://nightly-tests/tf-state/${process.env["TF_VAR_TEST_ID"]}-kubeconfig' under the project 'sh-atuomated-tests' "`);
 
         exec(`werft log result -d  "Terraform state" url "Terraform state file name is ${process.env["TF_VAR_TEST_ID"]}"`);
 
