@@ -28,7 +28,7 @@ var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Create a Gitpod configuration for this project.",
 	Long: `
-Create a Gitpod configuration for this project.
+Create a Gitpod configuration for this project..
 	`,
 	Run: func(cmd *cobra.Command, args []string) {
 		cfg := gitpodlib.GitpodFile{}
