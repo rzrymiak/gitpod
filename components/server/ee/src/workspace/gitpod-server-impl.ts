@@ -241,6 +241,9 @@ export class GitpodServerEEImpl extends GitpodServerImpl {
         await super.mayStartWorkspace(ctx, user, runningInstances);
 
         const result = await this.eligibilityService.mayStartWorkspace(user, new Date(), runningInstances);
+        if (result.needsPhoneNumberVerification) {
+            throw new ResponseError(ErrorCodes.NEEDS_VERIFICATION, `Please verify your account.`);
+        }
         if (!result.enoughCredits) {
             throw new ResponseError(
                 ErrorCodes.NOT_ENOUGH_CREDIT,

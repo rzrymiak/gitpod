@@ -215,6 +215,8 @@ export interface ProfileDetails {
     companyName?: string;
     // the user's email
     emailAddress?: string;
+    // verified
+    verifiedPhoneNumber?: string;
 }
 
 export interface EmailNotificationSettings {

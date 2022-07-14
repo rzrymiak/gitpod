@@ -228,6 +228,7 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 		ChargebeeProviderOptionsFile: fmt.Sprintf("%s/providerOptions", chargebeeMountPath),
 		StripeSecretsFile:            fmt.Sprintf("%s/apikeys", stripeSecretMountPath),
 		StripeConfigFile:             fmt.Sprintf("%s/config", stripeConfigMountPath),
+		TwilioConfigFile:             fmt.Sprintf("%s/config", twilioConfigMountPath),
 		InsecureNoDomain:             false,
 		PrebuildLimiter: map[string]int{
 			// default limit for all cloneURLs

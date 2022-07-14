@@ -236,6 +236,29 @@ func deployment(ctx *common.RenderContext) ([]runtime.Object, error) {
 	})
 
 	_ = ctx.WithExperimental(func(cfg *experimental.Config) error {
+		if cfg.WebApp != nil && cfg.WebApp.Server != nil && cfg.WebApp.Server.TwilioConfig != "" {
+			twilioConfig := cfg.WebApp.Server.TwilioConfig
+
+			volumes = append(volumes,
+				corev1.Volume{
+					Name: "twilio-config",
+					VolumeSource: corev1.VolumeSource{
+						ConfigMap: &corev1.ConfigMapVolumeSource{
+							LocalObjectReference: corev1.LocalObjectReference{Name: twilioConfig},
+						},
+					},
+				})
+
+			volumeMounts = append(volumeMounts, corev1.VolumeMount{
+				Name:      "twilio-config",
+				MountPath: twilioConfigMountPath,
+				ReadOnly:  true,
+			})
+		}
+		return nil
+	})
+
+	_ = ctx.WithExperimental(func(cfg *experimental.Config) error {
 		if cfg.WebApp != nil && cfg.WebApp.Server != nil && cfg.WebApp.Server.GithubApp != nil {
 			volumes = append(volumes,
 				corev1.Volume{

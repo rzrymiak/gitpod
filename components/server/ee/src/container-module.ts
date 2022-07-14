@@ -61,6 +61,7 @@ import { SnapshotService } from "./workspace/snapshot-service";
 import { BitbucketAppSupport } from "./bitbucket/bitbucket-app-support";
 import { UserCounter } from "./user/user-counter";
 import { BitbucketServerApp } from "./prebuilds/bitbucket-server-app";
+import { PhoneVerificationService } from "../../src/auth/phone-verification-service";
 
 export const productionEEContainerModule = new ContainerModule((bind, unbind, isBound, rebind) => {
     rebind(Server).to(ServerEE).inSingletonScope();
@@ -81,6 +82,7 @@ export const productionEEContainerModule = new ContainerModule((bind, unbind, is
     bind(BitbucketAppSupport).toSelf().inSingletonScope();
     bind(GitHubEnterpriseApp).toSelf().inSingletonScope();
     bind(BitbucketServerApp).toSelf().inSingletonScope();
+    bind(PhoneVerificationService).toSelf().inSingletonScope();
 
     bind(UserCounter).toSelf().inSingletonScope();
 

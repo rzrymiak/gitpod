@@ -169,6 +169,7 @@ import { Currency } from "@gitpod/gitpod-protocol/lib/plans";
 import { getExperimentsClientForBackend } from "@gitpod/gitpod-protocol/lib/experiments/configcat-server";
 import { BillableSession } from "@gitpod/gitpod-protocol/lib/usage";
 import { WorkspaceClusterImagebuilderClientProvider } from "./workspace-cluster-imagebuilder-client-provider";
+import { PhoneVerificationService } from "../auth/phone-verification-service";
 
 // shortcut
 export const traceWI = (ctx: TraceContext, wi: Omit<LogContext, "userId">) => TraceContext.setOWI(ctx, wi); // userId is already taken care of in WebsocketConnectionManager
@@ -236,6 +237,8 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
     @inject(ConfigurationService) protected readonly configurationService: ConfigurationService;
 
     @inject(IDEConfigService) protected readonly ideConfigService: IDEConfigService;
+
+    @inject(PhoneVerificationService) protected readonly phoneVerificationService: PhoneVerificationService;
 
     /** Id the uniquely identifies this server instance */
     public readonly uuid: string = uuidv4();
@@ -455,6 +458,37 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
         }
 
         return user;
+    }
+
+    public async needsVerification(ctx: TraceContext): Promise<boolean> {
+        const user = this.checkUser("needsVerification");
+        return this.phoneVerificationService.needsVerification(user);
+    }
+
+    public async sendPhoneNumberVerificationToken(ctx: TraceContext, phoneNumber: string): Promise<void> {
+        this.checkUser("sendPhoneNumberVerificationToken");
+        return this.phoneVerificationService.sendVerificationToken(phoneNumber);
+    }
+
+    public async verifyPhoneNumberVerificationToken(
+        ctx: TraceContext,
+        phoneNumber: string,
+        token: string,
+    ): Promise<boolean> {
+        const user = this.checkUser("verifyPhoneNumberVerificationToken");
+        const checked = await this.phoneVerificationService.verifyVerificationToken(phoneNumber, token);
+        if (!checked) {
+            return false;
+        }
+        if (!user.additionalData) {
+            user.additionalData = {};
+        }
+        if (!user.additionalData?.profile) {
+            user.additionalData.profile = {};
+        }
+        user.additionalData.profile.verifiedPhoneNumber = phoneNumber;
+        await this.userDB.updateUserPartial(user);
+        return true;
     }
 
     public async getClientRegion(ctx: TraceContext): Promise<string | undefined> {
@@ -1176,14 +1210,6 @@ export class GitpodServerImpl implements GitpodServerWithTracing, Disposable {
                 error && error.message ? error.message : `Cannot create workspace for URL: ${normalizedContextUrl}`,
             );
         }
-    }
-
-    /**
-     * This is an explicit extension point for allowing downstream versions of Gitpod to selectively restrict access.
-     * @returns true if the user is allowed to access the repository
-     */
-    protected async mayStartWorkspaceOnRepo(): Promise<boolean> {
-        return true;
     }
 
     protected parseErrorCode(error: any) {

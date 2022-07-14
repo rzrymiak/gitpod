@@ -23,10 +23,12 @@ import { AccountStatementProvider, CachedAccountStatement } from "./account-stat
 import { EMailDomainService } from "../auth/email-domain-service";
 import fetch from "node-fetch";
 import { Config } from "../../../src/config";
+import { PhoneVerificationService } from "../../../src/auth/phone-verification-service";
 
 export interface MayStartWorkspaceResult {
     hitParallelWorkspaceLimit?: HitParallelWorkspaceLimit;
     enoughCredits: boolean;
+    needsPhoneNumberVerification?: boolean;
 }
 
 export interface HitParallelWorkspaceLimit {
@@ -57,6 +59,7 @@ export class EligibilityService {
     @inject(AccountStatementProvider) protected readonly accountStatementProvider: AccountStatementProvider;
     @inject(TeamSubscriptionDB) protected readonly teamSubscriptionDb: TeamSubscriptionDB;
     @inject(TeamSubscription2DB) protected readonly teamSubscription2Db: TeamSubscription2DB;
+    @inject(PhoneVerificationService) protected readonly phoneVerificationService: PhoneVerificationService;
 
     /**
      * Whether the given user is recognized as a student within Gitpod
@@ -143,10 +146,6 @@ export class EligibilityService {
         date: Date,
         runningInstances: Promise<WorkspaceInstance[]>,
     ): Promise<MayStartWorkspaceResult> {
-        if (!this.config.enablePayment) {
-            return { enoughCredits: true };
-        }
-
         const hasHitParallelWorkspaceLimit = async (): Promise<HitParallelWorkspaceLimit | undefined> => {
             const max = await this.getMaxParallelWorkspaces(user);
             const instances = (await runningInstances).filter((i) => i.status.phase !== "preparing");
@@ -160,14 +159,16 @@ export class EligibilityService {
                 return undefined;
             }
         };
-        const [enoughCredits, hitParallelWorkspaceLimit] = await Promise.all([
-            this.checkEnoughCreditForWorkspaceStart(user.id, date, runningInstances),
+        const [enoughCredits, hitParallelWorkspaceLimit, needsPhoneNumberVerification] = await Promise.all([
+            !this.config.enablePayment || this.checkEnoughCreditForWorkspaceStart(user.id, date, runningInstances),
             hasHitParallelWorkspaceLimit(),
+            this.phoneVerificationService.needsVerification(user),
         ]);
 
         return {
             enoughCredits: !!enoughCredits,
             hitParallelWorkspaceLimit,
+            needsPhoneNumberVerification,
         };
     }
 

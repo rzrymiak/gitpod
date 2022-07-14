@@ -34,6 +34,7 @@ type ConfigSerialized struct {
 	ChargebeeProviderOptionsFile      string   `json:"chargebeeProviderOptionsFile"`
 	StripeSecretsFile                 string   `json:"stripeSecretsFile"`
 	StripeConfigFile                  string   `json:"stripeConfigFile"`
+	TwilioConfigFile                  string   `json:"twilioConfigFile"`
 	EnablePayment                     bool     `json:"enablePayment"`
 
 	WorkspaceHeartbeat         WorkspaceHeartbeat         `json:"workspaceHeartbeat"`

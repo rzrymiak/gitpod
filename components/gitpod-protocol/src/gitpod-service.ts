@@ -82,6 +82,9 @@ export interface GitpodServer extends JsonRpcServer<GitpodClient>, AdminServer, 
     getLoggedInUser(): Promise<User>;
     getTerms(): Promise<Terms>;
     updateLoggedInUser(user: Partial<User>): Promise<User>;
+    needsVerification(): Promise<boolean>;
+    sendPhoneNumberVerificationToken(phoneNumber: string): Promise<void>;
+    verifyPhoneNumberVerificationToken(phoneNumber: string, token: string): Promise<boolean>;
     getAuthProviders(): Promise<AuthProviderInfo[]>;
     getOwnAuthProviders(): Promise<AuthProviderEntry[]>;
     updateOwnAuthProvider(params: GitpodServer.UpdateOwnAuthProviderParams): Promise<AuthProviderEntry>;
@@ -378,7 +381,7 @@ export const createServerMock = function <C extends GitpodClient, S extends Gitp
         get: (target: S, property: keyof S) => {
             const result = target[property];
             if (!result) {
-                throw new Error(`Method ${property} not implemented`);
+                throw new Error(`Method ${property.toString()} not implemented`);
             }
             return result;
         },

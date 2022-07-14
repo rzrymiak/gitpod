@@ -6,7 +6,7 @@
 
 const inspect: (object: any) => string = require("util").inspect; // undefined in frontend
 
-let plainLogging: boolean = false; // set to true during development to get non JSON output
+let plainLogging: boolean = true; // set to true during development to get non JSON output
 let jsonLogging: boolean = false;
 let component: string | undefined;
 let version: string | undefined;

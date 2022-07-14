@@ -16,6 +16,7 @@ import * as fs from "fs";
 import * as yaml from "js-yaml";
 import { log } from "@gitpod/gitpod-protocol/lib/util/logging";
 import { filePathTelepresenceAware } from "@gitpod/gitpod-protocol/lib/env";
+import { env } from "process";
 
 export const Config = Symbol("Config");
 export type Config = Omit<
@@ -25,6 +26,7 @@ export type Config = Omit<
     | "chargebeeProviderOptionsFile"
     | "stripeSecretsFile"
     | "stripeConfigFile"
+    | "twilioConfigFile"
     | "licenseFile"
 > & {
     hostUrl: GitpodHostUrl;
@@ -32,6 +34,11 @@ export type Config = Omit<
     chargebeeProviderOptions?: ChargebeeProviderOptions;
     stripeSecrets?: { publishableKey: string; secretKey: string };
     stripeConfig?: { usageProductPriceIds: { EUR: string; USD: string } };
+    twilioConfig?: {
+        serviceName: string;
+        accountSID: string;
+        authToken: string;
+    };
     builtinAuthProvidersConfigured: boolean;
     blockedRepositories: { urlRegExp: RegExp; blockUser: boolean }[];
     inactivityPeriodForRepos?: number;
@@ -178,6 +185,8 @@ export interface ConfigSerialized {
      * considered inactive.
      */
     inactivityPeriodForRepos?: number;
+
+    twilioConfigFile?: string;
 }
 
 export namespace ConfigFile {
@@ -240,6 +249,22 @@ export namespace ConfigFile {
                 log.error("Could not load Stripe config", error);
             }
         }
+        let twilioConfig: Config["twilioConfig"];
+        log.info("loading twilio config");
+        if (!!env.TWILIO_CONFIG) {
+            try {
+                log.info("Using twilio config from env var");
+                twilioConfig = JSON.parse(env.TWILIO_CONFIG);
+            } catch (error) {
+                log.error("Could not load Twilio config", error);
+            }
+        } else if (config.twilioConfigFile) {
+            try {
+                twilioConfig = JSON.parse(fs.readFileSync(filePathTelepresenceAware(config.twilioConfigFile), "utf-8"));
+            } catch (error) {
+                log.warn("`twilioConfigFile` path configured but couldn't load it. verification will be disabled.");
+            }
+        }
         let license = config.license;
         const licenseFile = config.licenseFile;
         if (licenseFile) {
@@ -268,6 +293,7 @@ export namespace ConfigFile {
             chargebeeProviderOptions,
             stripeSecrets,
             stripeConfig,
+            twilioConfig,
             license,
             workspaceGarbageCollection: {
                 ...config.workspaceGarbageCollection,

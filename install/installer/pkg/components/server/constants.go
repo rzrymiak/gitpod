@@ -17,6 +17,7 @@ const (
 	chargebeeMountPath    = "/chargebee"
 	stripeSecretMountPath = "/stripe-secret"
 	stripeConfigMountPath = "/stripe-config"
+	twilioConfigMountPath = "/twilio-config"
 	githubAppCertSecret   = "github-app-cert-secret"
 	PrometheusPort        = 9500
 	PrometheusPortName    = "metrics"
