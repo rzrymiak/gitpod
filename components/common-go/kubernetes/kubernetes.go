@@ -43,9 +43,6 @@ const (
 	// ServiceTypeLabel help differentiate between port service and IDE service
 	ServiceTypeLabel = "serviceType"
 
-	// CPULimitAnnotation enforces a strict CPU limit on a workspace by virtue of ws-daemon
-	CPULimitAnnotation = "gitpod.io/cpuLimit"
-
 	// ContainerIsGoneAnnotation is used as workaround for containerd https://github.com/containerd/containerd/pull/4214
 	// which might cause workspace container status propagation to fail, which in turn would keep a workspace running indefinitely.
 	ContainerIsGoneAnnotation = "gitpod.io/containerIsGone"
@@ -68,6 +65,12 @@ const (
 
 	// WorkspaceSSHPublicKeys contains all authorized ssh public keys that can be connected to the workspace
 	WorkspaceSSHPublicKeys = "gitpod.io/sshPublicKeys"
+
+	// workspaceCpuLimit denotes the cpu limit of a workspace
+	WorkspaceCpuLimitAnnotation = "gitpod.io/cpuLimit"
+
+	// workspaceCpuBurstLimit denotes the cpu burst limit of a workspace
+	WorkspaceCpuBurstLimitAnnotation = "gitpod.io/cpuBurstLimit"
 )
 
 // WorkspaceSupervisorEndpoint produces the supervisor endpoint of a workspace.
