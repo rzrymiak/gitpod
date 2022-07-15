@@ -18,6 +18,7 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/credentials/insecure"
+	k8serr "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	"k8s.io/client-go/kubernetes"
@@ -202,6 +203,9 @@ var runCmd = &cobra.Command{
 
 		// enable the volume snapshot controller when the VolumeSnapshot CRD exists
 		_, err = clientset.DiscoveryClient.ServerResourcesForGroupVersion(volumesnapshotv1.SchemeGroupVersion.String())
+		if err != nil && !k8serr.IsNotFound(err) {
+			log.WithError(err).Fatal("unable to check the volume snapshot crd exists")
+		}
 		if err == nil {
 			err = (&manager.VolumeSnapshotReconciler{
 				Monitor: monitor,
