@@ -141,6 +141,7 @@ type WebAppConfig struct {
 	DisableMigration       bool                   `json:"disableMigration"`
 	Usage                  *UsageConfig           `json:"usage,omitempty"`
 	ConfigcatKey           string                 `json:"configcatKey"`
+	WorkspaceClasses       []WebAppWorkspaceClass `json:"workspaceClasses"`
 }
 
 type WorkspaceDefaults struct {
@@ -208,6 +209,14 @@ type UsageConfig struct {
 	Enabled                          bool               `json:"enabled"`
 	Schedule                         string             `json:"schedule"`
 	CreditsPerMinuteByWorkspaceClass map[string]float64 `json:"creditsPerMinuteByWorkspaceClass"`
+}
+
+type WebAppWorkspaceClass struct {
+	Id               string `json:"id"`
+	DisplayName      string `json:"displayName"`
+	IsDefault        bool   `json:"isDefault"`
+	Deprecated       bool   `json:"deprecated"`
+	CreditsPerMinute int32  `json:"creditsPerMinute"`
 }
 
 type IDEConfig struct {

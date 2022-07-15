@@ -154,6 +154,34 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 		return nil
 	})
 
+	workspaceClasses := []WorkspaceClass{
+		{
+			Id:               "g1-standard",
+			DisplayName:      "Standard",
+			IsDefault:        true,
+			Deprecated:       false,
+			CreditsPerMinute: 10,
+		},
+	}
+	ctx.WithExperimental(func(cfg *experimental.Config) error {
+		if cfg.WebApp != nil && cfg.WebApp.WorkspaceClasses != nil && len(cfg.WebApp.WorkspaceClasses) > 0 {
+			workspaceClasses = nil
+			for _, cl := range cfg.WebApp.WorkspaceClasses {
+				class := WorkspaceClass{
+					Id:               cl.Id,
+					DisplayName:      cl.DisplayName,
+					IsDefault:        cl.IsDefault,
+					Deprecated:       cl.Deprecated,
+					CreditsPerMinute: cl.CreditsPerMinute,
+				}
+
+				workspaceClasses = append(workspaceClasses, class)
+			}
+		}
+
+		return nil
+	})
+
 	// todo(sje): all these values are configurable
 	scfg := ConfigSerialized{
 		Version:               ctx.VersionManifest.Version,
@@ -237,10 +265,7 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 			// default limit for all cloneURLs
 			"*": 50,
 		},
-		WorkspaceClasses: WorkspaceClasses{
-			Default:              "g1-standard",
-			DefaultMoreResources: "g1-large",
-		},
+		WorkspaceClasses: workspaceClasses,
 	}
 
 	fc, err := common.ToJSONString(scfg)
