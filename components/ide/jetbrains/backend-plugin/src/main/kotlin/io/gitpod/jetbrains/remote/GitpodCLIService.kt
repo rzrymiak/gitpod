@@ -26,6 +26,7 @@ import org.jetbrains.io.response
 import java.io.OutputStreamWriter
 import java.nio.file.InvalidPathException
 import java.nio.file.Path
+import java.util.regex.Pattern
 
 @Suppress("UnstableApiUsage")
 class GitpodCLIService : RestService() {
@@ -64,10 +65,30 @@ class GitpodCLIService : RestService() {
             }
         }
         if (operation == "preview") {
-            val url = getStringParameter("url", urlDecoder)
+            var url = getStringParameter("url", urlDecoder)
+
             if (url.isNullOrBlank()) {
                 return "url is missing"
             }
+
+            // When it's auto-forwarding ports, we need to consider Gitpod Tasks running "gp preview".
+            // For example: gp preview --external $(gp url 3000)
+            if (manager.isAutoForwardingPorts) {
+                val isGitpodPortUrl = url.matches(
+                        Regex("^https?://([0-9]{1,5})-" + System.getenv("JETBRAINS_GITPOD_WORKSPACE_HOST") + "$")
+                )
+
+                if (isGitpodPortUrl) {
+                    val portsPrefix = "://"
+                    val matcher = Pattern.compile("$portsPrefix([0-9]{1,5})").matcher(url)
+
+                    if (matcher.find()) {
+                        val portString = matcher.group().substring(portsPrefix.length)
+                        url = "http://localhost:${portString}"
+                    }
+                }
+            }
+
             return withClient(request, context) { project ->
                 BrowserUtil.browse(url, project)
             }

@@ -4,6 +4,7 @@
 
 package io.gitpod.jetbrains.remote.latest
 
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.remoteDev.util.onTerminationOrNow
@@ -38,6 +39,10 @@ class GitpodPortForwardingService(private val project: Project) {
     }
 
     private fun observePortsListWhileProjectIsOpen() = application.executeOnPooledThread {
+        val gitpodManager = service<GitpodManager>()
+
+        gitpodManager.isAutoForwardingPorts = true
+
         while (project.lifetime.status == LifetimeStatus.Alive) {
             try {
                 observePortsList().get()
@@ -54,6 +59,8 @@ class GitpodPortForwardingService(private val project: Project) {
 
             TimeUnit.SECONDS.sleep(1)
         }
+
+        gitpodManager.isAutoForwardingPorts = false
     }
 
     private fun observePortsList(): CompletableFuture<Void> {

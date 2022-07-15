@@ -62,6 +62,7 @@ class GitpodManager : Disposable {
     }
 
     val devMode = System.getenv("JB_DEV").toBoolean()
+    var isAutoForwardingPorts = false
     private val backendKind = System.getenv("JETBRAINS_GITPOD_BACKEND_KIND") ?: "unknown"
     private val backendQualifier = System.getenv("JETBRAINS_BACKEND_QUALIFIER") ?: "unknown"
 
