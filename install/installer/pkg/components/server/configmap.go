@@ -156,11 +156,10 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 
 	workspaceClasses := []WorkspaceClass{
 		{
-			Id:               "g1-standard",
-			DisplayName:      "Standard",
-			IsDefault:        true,
-			Deprecated:       false,
-			CreditsPerMinute: 10,
+			Id:          "g1-standard",
+			DisplayName: "Standard",
+			IsDefault:   true,
+			Deprecated:  false,
 		},
 	}
 	ctx.WithExperimental(func(cfg *experimental.Config) error {
@@ -168,11 +167,11 @@ func configmap(ctx *common.RenderContext) ([]runtime.Object, error) {
 			workspaceClasses = nil
 			for _, cl := range cfg.WebApp.WorkspaceClasses {
 				class := WorkspaceClass{
-					Id:               cl.Id,
-					DisplayName:      cl.DisplayName,
-					IsDefault:        cl.IsDefault,
-					Deprecated:       cl.Deprecated,
-					CreditsPerMinute: cl.CreditsPerMinute,
+					Id:          cl.Id,
+					DisplayName: cl.DisplayName,
+					IsDefault:   cl.IsDefault,
+					Deprecated:  cl.Deprecated,
+					Marker:      cl.Marker,
 				}
 
 				workspaceClasses = append(workspaceClasses, class)
