@@ -348,7 +348,10 @@ func Run(options ...RunOption) {
 	if err != nil {
 		log.WithError(err).Fatal("failed to send test notification")
 	}
+	log.Info("********")
 	log.Info(result)
+	log.Info(gitpodConfigService.Observe(ctx))
+	log.Info("********")
 
 	if result.Action == "Rebuild Now" {
 		gpPath, err := exec.LookPath("gp")
