@@ -316,14 +316,25 @@ destroy-azure: select-workspace
 list-state:
 	terraform state list
 
+
 cleanup-old-tests:
-	terraform init
-	for f in $$(terraform workspace list); do echo "$f"; done;
-
 	gcloud auth activate-service-account --key-file=${GOOGLE_APPLICATION_CREDENTIALS} --project=sh-automated-tests
-
-
-
-	# gsutil ls gs://nightly-tests/tf-state
+	for i in $(shell gsutil ls gs://nightly-tests/tf-state); do \
+		FILE=$$(echo $$i | rev | cut -d '/' -f 1 | rev); \
+		LEN=$$(echo $$FILE | wc -c ); \
+		if [ $$LEN -gt 1 ] ; then \
+			[[ $$FILE == *-kubeconfig ]] && continue; \
+			export TF_VAR_TEST_ID=$$(basename $$FILE .tfstate); \
+			[[ $$TF_VAR_TEST_ID == "default" ]] && continue; \
+			datetime=$$(gsutil ls -la $$i | xargs |  awk '{print $$2}'); \
+			limit='10 minutes ago'; \
+			dtSec=$$(date --date "$$datetime" +'%s'); \
+			dtOld=$$(date --date "$$limit" +'%s'); \
+			[[ $$dtSec -gt $$dtOld ]] && continue; \
+			$(MAKE) select-workspace && $(MAKE) cleanup cloud=aws || echo "Workspace does not exist"; \
+			$(MAKE) select-workspace && $(MAKE) cleanup cloud=gcp || echo "Workspace does not exist"; \
+			$(MAKE) select-workspace && $(MAKE) cleanup cloud=azure || echo "Workspace does not exist"; \
+		fi \
+	done
 
 # end

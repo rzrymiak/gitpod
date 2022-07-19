@@ -300,8 +300,7 @@ export async function installerTests(config: TestConfig) {
             `werft log result -d  "self-hosted preview url" url "https://${process.env["TF_VAR_TEST_ID"]}.tests.gitpod-self-hosted.com"`,
         );
 
-        exec(`werft log result -d  "KUBECONFIG file destination" url "You can find
-             your KUBECONFIG file at 'gs://nightly-tests/tf-state/${process.env["TF_VAR_TEST_ID"]}-kubeconfig' under the project 'sh-atuomated-tests' "`);
+        exec(`werft log result -d  "KUBECONFIG file store under GCP project 'sh-automated-tests'" url "gs://nightly-tests/tf-state/${process.env["TF_VAR_TEST_ID"]}-kubeconfig"`);
 
         exec(`werft log result -d  "Terraform state" url "Terraform state file name is ${process.env["TF_VAR_TEST_ID"]}"`);
 
