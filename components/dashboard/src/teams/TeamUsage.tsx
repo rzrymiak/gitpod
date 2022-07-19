@@ -17,6 +17,7 @@ import { Item, ItemField, ItemsList } from "../components/ItemsList";
 import moment from "moment";
 import Property from "../admin/Property";
 import Arrow from "../components/Arrow";
+import Pagination from "../components/Pagination";
 
 function TeamUsage() {
     const { teams } = useContext(TeamsContext);
@@ -24,6 +25,8 @@ function TeamUsage() {
     const location = useLocation();
     const team = getCurrentTeam(location, teams);
     const [billedUsage, setBilledUsage] = useState<BillableSession[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [resultsPerPage] = useState(10);
 
     useEffect(() => {
         if (!team) {
@@ -50,6 +53,11 @@ function TeamUsage() {
     const getHours = (endTime: number, startTime: number) => {
         return (endTime - startTime) / (1000 * 60 * 60) + "hrs";
     };
+
+    const lastResultOnCurrentPage = currentPage * resultsPerPage;
+    const firstResultOnCurrentPage = lastResultOnCurrentPage - resultsPerPage;
+    const numberOfPages = Math.ceil(billedUsage.length / resultsPerPage);
+    const currentPaginatedResults = billedUsage.slice(firstResultOnCurrentPage, lastResultOnCurrentPage);
 
     return (
         <PageWithSubMenu
@@ -80,7 +88,7 @@ function TeamUsage() {
                     </ItemField>
                     <ItemField className="my-auto" />
                 </Item>
-                {billedUsage.map((usage) => (
+                {currentPaginatedResults.map((usage) => (
                     <div
                         key={usage.instanceId}
                         className="flex p-3 grid grid-cols-6 justify-between transition ease-in-out rounded-xl focus:bg-gitpod-kumquat-light"
@@ -112,6 +120,7 @@ function TeamUsage() {
                     </div>
                 ))}
             </ItemsList>
+            {(billedUsage.length > resultsPerPage) && <Pagination currentPage={currentPage} setCurrentPage={setCurrentPage} numberOfPages={numberOfPages} />}
         </PageWithSubMenu>
     );
 }
