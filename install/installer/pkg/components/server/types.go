@@ -45,7 +45,6 @@ type ConfigSerialized struct {
 	AuthProviderConfigFiles    []string                   `json:"authProviderConfigFiles"`
 	IncrementalPrebuilds       IncrementalPrebuilds       `json:"incrementalPrebuilds"`
 	BlockNewUsers              config.BlockNewUsers       `json:"blockNewUsers"`
-	BlockedRepositories        []BlockedRepository        `json:"blockedRepositories,omitempty"`
 	OAuthServer                OAuthServer                `json:"oauthServer"`
 	RateLimiter                RateLimiter                `json:"rateLimiter"`
 	CodeSync                   CodeSync                   `json:"codeSync"`

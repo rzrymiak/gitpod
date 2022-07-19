@@ -231,7 +231,6 @@ export class WorkspaceStarter {
 
         options = options || {};
         try {
-            await this.checkBlockedRepository(user, workspace.contextURL);
             await this.checkBlockedRepositoryInDB(user, workspace.contextURL);
 
             // Some workspaces do not have an image source.
@@ -372,22 +371,6 @@ export class WorkspaceStarter {
 
         const client = await this.clientProvider.get(instanceRegion);
         await client.stopWorkspace(ctx, req);
-    }
-
-    protected async checkBlockedRepository(user: User, contextURL: string) {
-        const hit = this.config.blockedRepositories.find((r) => !!contextURL && r.urlRegExp.test(contextURL));
-        if (!hit) {
-            return;
-        }
-        if (hit.blockUser) {
-            try {
-                await this.userService.blockUser(user.id, true);
-                log.info({ userId: user.id }, "Blocked user.", { contextURL });
-            } catch (error) {
-                log.error({ userId: user.id }, "Failed to block user.", error, { contextURL });
-            }
-        }
-        throw new Error(`${contextURL} is blocklisted on Gitpod.`);
     }
 
     protected async checkBlockedRepositoryInDB(user: User, contextURL: string) {
